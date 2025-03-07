@@ -6,11 +6,17 @@ document.addEventListener('DOMContentLoaded', function() {
     let connectedUsers = [];
 
     // DOM Elements
-    const messageInput = document.querySelector('.message-input input');
+    const messageInput = document.querySelector('.message-input input[type="text"]');
     const sendButton = document.querySelector('.send-btn');
     const messageArea = document.querySelector('.message-area');
     const chatList = document.querySelector('.chat-list');
     const userProfile = document.querySelector('.user-profile');
+
+    // File upload handling
+    const fileInput = document.getElementById('fileInput');
+    const attachButton = document.querySelector('.attach-btn');
+    const dropZone = document.getElementById('dropZone');
+    const dropZoneOverlay = document.querySelector('.drop-zone-overlay');
 
     // Login handler
     function handleLogin() {
@@ -95,27 +101,146 @@ document.addEventListener('DOMContentLoaded', function() {
         socket.emit('requestChatHistory', { userId: selectedChat.id });
     }
 
-    // Fungsi untuk menambahkan pesan baru
+    // Handle file selection via button
+    attachButton.addEventListener('click', () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener('change', handleFileSelect);
+
+    // Handle drag and drop
+    dropZone.addEventListener('dragenter', (e) => {
+        e.preventDefault();
+        dropZoneOverlay.classList.add('active');
+    });
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+    });
+
+    dropZone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        if (e.relatedTarget && !dropZone.contains(e.relatedTarget)) {
+            dropZoneOverlay.classList.remove('active');
+        }
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZoneOverlay.classList.remove('active');
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+
+    function handleFileSelect(e) {
+        const files = e.target.files;
+        handleFiles(files);
+        fileInput.value = ''; // Reset input
+    }
+
+    function handleFiles(files) {
+        if (!selectedChat) {
+            alert('Please select a chat first');
+            return;
+        }
+
+        Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fileData = {
+                    file: e.target.result.split(',')[1], // Remove data URL prefix
+                    fileName: file.name,
+                    fileSize: file.size,
+                    receiverId: selectedChat.id
+                };
+                socket.emit('uploadFile', fileData);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Update message display function
     function addMessage(message, isSent = true) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
         
-        const time = new Date(message.timestamp).toLocaleTimeString('id-ID', { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-        });
-
-        messageDiv.innerHTML = `
-            <p>${message.text}</p>
-            <span class="time">${time}</span>
-        `;
+        if (message.type === 'file') {
+            // File message
+            messageDiv.classList.add('file');
+            const icon = getFileIcon(message.fileName);
+            const size = formatFileSize(message.fileSize);
+            
+            messageDiv.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <div class="file-info">
+                    <div class="file-name">${message.fileName}</div>
+                    <div class="file-size">${size}</div>
+                </div>
+                <a href="${message.filePath}" class="download-btn" download>
+                    <i class="fas fa-download"></i>
+                </a>
+                <span class="time">${formatTime(message.timestamp)}</span>
+            `;
+        } else {
+            // Regular text message
+            messageDiv.innerHTML = `
+                <p>${message.text}</p>
+                <span class="time">${formatTime(message.timestamp)}</span>
+            `;
+        }
 
         messageArea.appendChild(messageDiv);
         messageArea.scrollTop = messageArea.scrollHeight;
     }
 
+    function getFileIcon(fileName) {
+        const ext = fileName.split('.').pop().toLowerCase();
+        const icons = {
+            pdf: 'fa-file-pdf',
+            doc: 'fa-file-word',
+            docx: 'fa-file-word',
+            xls: 'fa-file-excel',
+            xlsx: 'fa-file-excel',
+            png: 'fa-file-image',
+            jpg: 'fa-file-image',
+            jpeg: 'fa-file-image',
+            gif: 'fa-file-image',
+            zip: 'fa-file-archive',
+            rar: 'fa-file-archive'
+        };
+        return icons[ext] || 'fa-file';
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function formatTime(timestamp) {
+        return new Date(timestamp).toLocaleTimeString('id-ID', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+    }
+
     // Event listener untuk tombol kirim
     sendButton.addEventListener('click', function() {
+        sendMessage();
+    });
+
+    // Event listener untuk input pesan (Enter key)
+    messageInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); // Prevent default form submission
+            sendMessage();
+        }
+    });
+
+    // Fungsi untuk mengirim pesan
+    function sendMessage() {
         const message = messageInput.value.trim();
         if (message && selectedChat) {
             // Kirim pesan ke server
@@ -125,22 +250,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             messageInput.value = '';
         }
-    });
-
-    // Event listener untuk input pesan (Enter key)
-    messageInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const message = messageInput.value.trim();
-            if (message && selectedChat) {
-                // Kirim pesan ke server
-                socket.emit('sendMessage', {
-                    text: message,
-                    receiverId: selectedChat.id
-                });
-                messageInput.value = '';
-            }
-        }
-    });
+    }
 
     // Socket.IO event handlers
     socket.on('userList', (users) => {

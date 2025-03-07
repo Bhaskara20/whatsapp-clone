@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp Clone</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
 </head>
 <body>
@@ -47,12 +48,20 @@
             </div>
 
             <!-- Message Area -->
-            <div class="message-area">
+            <div class="message-area" id="dropZone">
+                <div class="drop-zone-overlay">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Drop file here to send</p>
+                </div>
                 <!-- Messages will be added dynamically -->
             </div>
 
             <!-- Message Input -->
             <div class="message-input">
+                <input type="file" id="fileInput" style="display: none;" multiple>
+                <button class="attach-btn" title="Attach file">
+                    <i class="fas fa-paperclip"></i>
+                </button>
                 <input type="text" placeholder="Type a message">
                 <button class="send-btn">Send</button>
             </div>

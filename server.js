@@ -3,6 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
@@ -10,13 +11,20 @@ const io = socketIo(server, {
     cors: {
         origin: "*",
         methods: ["GET", "POST"]
-    }
+    },
+    maxHttpBufferSize: 1e8 // 100 MB max file size
 });
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Menyimpan data pengguna yang terhubung
 const connectedUsers = new Map();
@@ -113,6 +121,54 @@ io.on('connection', (socket) => {
             userId: data.userId,
             messages: processedHistory
         });
+    });
+
+    // Handle file upload
+    socket.on('uploadFile', (data) => {
+        const sender = connectedUsers.get(socket.id);
+        if (sender && data.file) {
+            const fileName = `${Date.now()}-${data.fileName}`;
+            const filePath = path.join(uploadsDir, fileName);
+            
+            // Save file
+            fs.writeFile(filePath, data.file, 'base64', (err) => {
+                if (err) {
+                    console.error('Error saving file:', err);
+                    return;
+                }
+
+                const fileMessage = {
+                    id: Date.now(),
+                    senderId: socket.id,
+                    senderName: sender.name,
+                    receiverId: data.receiverId,
+                    type: 'file',
+                    fileName: data.fileName,
+                    fileSize: data.fileSize,
+                    filePath: `/uploads/${fileName}`,
+                    timestamp: new Date().toISOString()
+                };
+
+                // Save to chat history
+                const chatKey = [socket.id, data.receiverId].sort().join('-');
+                if (!chatHistory.has(chatKey)) {
+                    chatHistory.set(chatKey, []);
+                }
+                chatHistory.get(chatKey).push(fileMessage);
+
+                // Send to receiver
+                io.to(data.receiverId).emit('receiveMessage', {
+                    ...fileMessage,
+                    isReceived: true
+                });
+
+                // Send confirmation to sender
+                socket.emit('receiveMessage', {
+                    ...fileMessage,
+                    isReceived: false
+                });
+            });
+        }
     });
 
     // Menangani disconnect
