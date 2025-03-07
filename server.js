@@ -75,6 +75,7 @@ io.on('connection', (socket) => {
                 id: Date.now(),
                 senderId: socket.id,
                 senderName: sender.name,
+                receiverId: messageData.receiverId,
                 text: messageData.text,
                 timestamp: new Date().toISOString()
             };
@@ -86,15 +87,17 @@ io.on('connection', (socket) => {
             }
             chatHistory.get(chatKey).push(message);
 
-            // Kirim pesan ke penerima spesifik
-            if (messageData.receiverId) {
-                io.to(messageData.receiverId).emit('receiveMessage', message);
-                // Kirim juga ke pengirim untuk konfirmasi
-                socket.emit('receiveMessage', message);
-            } else {
-                // Broadcast ke semua pengguna (untuk chat grup)
-                io.emit('receiveMessage', message);
-            }
+            // Kirim pesan ke penerima
+            io.to(messageData.receiverId).emit('receiveMessage', {
+                ...message,
+                isReceived: true
+            });
+
+            // Kirim konfirmasi ke pengirim
+            socket.emit('receiveMessage', {
+                ...message,
+                isReceived: false
+            });
         }
     });
 
@@ -102,9 +105,13 @@ io.on('connection', (socket) => {
     socket.on('requestChatHistory', (data) => {
         const chatKey = [socket.id, data.userId].sort().join('-');
         const history = chatHistory.get(chatKey) || [];
+        const processedHistory = history.map(msg => ({
+            ...msg,
+            isReceived: msg.senderId !== socket.id
+        }));
         socket.emit('chatHistory', {
             userId: data.userId,
-            messages: history
+            messages: processedHistory
         });
     });
 

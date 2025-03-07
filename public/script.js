@@ -118,16 +118,6 @@ document.addEventListener('DOMContentLoaded', function() {
     sendButton.addEventListener('click', function() {
         const message = messageInput.value.trim();
         if (message && selectedChat) {
-            // Tampilkan pesan langsung di sisi pengirim
-            const messageData = {
-                id: Date.now(),
-                senderId: currentUser.id,
-                senderName: currentUser.name,
-                text: message,
-                timestamp: new Date().toISOString()
-            };
-            addMessage(messageData, true);
-            
             // Kirim pesan ke server
             socket.emit('sendMessage', {
                 text: message,
@@ -142,16 +132,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Enter') {
             const message = messageInput.value.trim();
             if (message && selectedChat) {
-                // Tampilkan pesan langsung di sisi pengirim
-                const messageData = {
-                    id: Date.now(),
-                    senderId: currentUser.id,
-                    senderName: currentUser.name,
-                    text: message,
-                    timestamp: new Date().toISOString()
-                };
-                addMessage(messageData, true);
-                
                 // Kirim pesan ke server
                 socket.emit('sendMessage', {
                     text: message,
@@ -169,9 +149,12 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     socket.on('receiveMessage', (message) => {
-        // Hanya tampilkan pesan jika kita adalah penerima
-        if (selectedChat && message.senderId === selectedChat.id) {
-            addMessage(message, false);
+        // Tampilkan pesan jika kita sedang chat dengan pengirim atau penerima pesan
+        if (selectedChat && (message.senderId === selectedChat.id || message.receiverId === selectedChat.id)) {
+            // Pesan diterima jika flag isReceived true
+            addMessage(message, !message.isReceived);
+            // Scroll ke pesan terbaru
+            messageArea.scrollTop = messageArea.scrollHeight;
         }
     });
 
@@ -179,7 +162,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (selectedChat && data.userId === selectedChat.id) {
             messageArea.innerHTML = '';
             data.messages.forEach(message => {
-                addMessage(message, message.senderId === currentUser.id);
+                // Pesan diterima jika flag isReceived true
+                addMessage(message, !message.isReceived);
             });
         }
     });
