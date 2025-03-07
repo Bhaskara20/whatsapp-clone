@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Chat Sederhana</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Header Sidebar -->
+            <div class="sidebar-header">
+                <div class="user-profile">
+                    <img src="defaultprofilepic.png" alt="Profile" class="profile-img">
+                    <div class="user-info">
+                        <h3>Nama Pengguna</h3>
+                        <p>Online</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daftar Chat -->
+            <div class="chat-list">
+                <div class="chat-item active">
+                    <img src="defaultprofilepic.png" alt="Contact" class="contact-img">
+                    <div class="chat-info">
+                        <h4>Kurniawan</h4>
+                        <p>Halo, apa kabar?</p>
+                    </div>
+                    <div class="chat-time">10:30</div>
+                </div>
+                <div class="chat-item">
+                    <img src="defaultprofilepic.png" alt="Contact" class="contact-img">
+                    <div class="chat-info">
+                        <h4>Khairunnas</h4>
+                        <p>Baik, terima kasih!</p>
+                    </div>
+                    <div class="chat-time">09:15</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Area Chat Utama -->
+        <div class="main-chat">
+            <!-- Header Chat -->
+            <div class="chat-header">
+                <div class="contact-info">
+                    <img src="defaultprofilepic.png" alt="Contact" class="contact-img">
+                    <div>
+                        <h3>John Doe</h3>
+                        <p>Online</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Area Pesan -->
+            <div class="message-area">
+                <div class="message received">
+                    <p>Halo, apa kabar?</p>
+                    <span class="time">10:30</span>
+                </div>
+                <div class="message sent">
+                    <p>Baik, terima kasih! Kamu gimana?</p>
+                    <span class="time">10:31</span>
+                </div>
+                <div class="message received">
+                    <p>Alhamdulillah, baik juga. Ada yang bisa saya bantu?</p>
+                    <span class="time">10:32</span>
+                </div>
+                <div class="message sent">
+                    <p>Tidak, cuma mau ngobrol aja</p>
+                    <span class="time">10:33</span>
+                </div>
+            </div>
+
+            <!-- Input Pesan -->
+            <div class="message-input">
+                <button class="emoji-btn">
+                    <i class="far fa-smile"></i>
+                </button>
+                <button class="attach-btn">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <input type="text" placeholder="Ketik pesan...">
+                <button class="send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 

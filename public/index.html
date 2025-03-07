@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Clone</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Header -->
+            <div class="header">
+                <div class="user-profile">
+                    <img src="defaultprofilepic.png" alt="Profile" class="profile-img">
+                    <div class="user-info">
+                        <h3>User</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="search">
+                <input type="text" placeholder="Search or start new chat">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <!-- Chat List -->
+            <div class="chat-list">
+                <!-- Chat items will be added dynamically -->
+            </div>
+        </div>
+
+        <!-- Main Chat -->
+        <div class="main-chat">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="contact-info">
+                    <img src="defaultprofilepic.png" alt="Contact" class="contact-img">
+                    <div>
+                        <h3>Select a chat</h3>
+                        <p>Click on a chat to start messaging</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Message Area -->
+            <div class="message-area">
+                <!-- Messages will be added dynamically -->
+            </div>
+
+            <!-- Message Input -->
+            <div class="message-input">
+                <input type="text" placeholder="Type a message">
+                <button class="send-btn">Send</button>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
